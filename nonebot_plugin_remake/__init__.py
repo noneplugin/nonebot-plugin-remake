@@ -59,40 +59,46 @@ async def _(reply: str = ArgPlainText('nums'), state: T_State = State()):
     else:
         await remake.finish('人生重开已取消')
 
+    life: Life = state.get('life')
     talents: List[Talent] = state.get('talents')
-    state['talents_selected'] = [talents[n] for n in nums]
+    talents_selected = [talents[n] for n in nums]
+    life.set_talents(talents_selected)
+    state['talents_selected'] = talents_selected
+
     msg = '请发送4个数字分配“颜值、智力、体质、家境”4个属性，如“5 5 5 5”，或发送“随机”随机选择；' \
-        '属性之和需为20，每个属性不能超过10'
+        f'可用属性点为{life.total_property()}，每个属性不能超过10'
     await remake.send(msg)
 
 
 @remake.got('prop')
 async def _(bot: Bot, event: GroupMessageEvent,
             reply: str = ArgPlainText('prop'), state: T_State = State()):
+    life: Life = state.get('life')
+    talents: List[Talent] = state.get('talents_selected')
+    total_prop = life.total_property()
+
     match = re.fullmatch(
         r'\s*(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s*', reply)
     if match:
         nums = list(match.groups())
         nums = [int(n) for n in nums]
-        if sum(nums) != 20:
-            await remake.reject('属性之和需为20，请重新发送')
+        if sum(nums) != total_prop:
+            await remake.reject(f'属性之和需为{total_prop}，请重新发送')
         elif max(nums) > 10:
             await remake.reject('每个属性不能超过10，请重新发送')
     elif reply == '随机':
-        num1 = random.randint(0, 10)
-        num2 = random.randint(0, 10)
-        nums = [num1, num2, 10-num1, 10-num2]
+        half_prop1 = int(total_prop / 2)
+        half_prop2 = total_prop - half_prop1
+        num1 = random.randint(0, half_prop1)
+        num2 = random.randint(0, half_prop2)
+        nums = [num1, num2, half_prop1-num1, half_prop2-num2]
         random.shuffle(nums)
     elif re.fullmatch(r'[\d\s]+', reply):
         await remake.reject('请发送正确的数字，如“5 5 5 5”')
     else:
         await remake.finish('人生重开已取消')
 
-    life: Life = state.get('life')
-    talents: List[Talent] = state.get('talents_selected')
-
     prop = {'CHR': nums[0], 'INT': nums[1], 'STR': nums[2], 'MNY': nums[3]}
-    life.set_talents(talents)
     life.apply_property(prop)
 
     await remake.send('你的人生正在重开...')

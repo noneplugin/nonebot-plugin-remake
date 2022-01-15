@@ -93,6 +93,7 @@ class Property:
         self.TMS = 1  # 次数 times TMS
         self.TLT: Set[int] = set()  # 天赋 talent TLT
         self.EVT: Set[int] = set()  # 事件 event EVT
+        self.total: int = 20
 
     def apply(self, effect: Dict[str, int]):
         for key in effect:

@@ -42,9 +42,13 @@ class Life:
     def set_talents(self, talents: List[Talent]):
         for t in talents:
             self.talent.add_talent(t)
+        self.talent.update_talent_prop()
 
     def apply_property(self, effect: Dict[str, int]):
         self.property.apply(effect)
+
+    def total_property(self) -> int:
+        return self.property.total
 
     def gen_summary(self) -> str:
         return self.property.gen_summary()

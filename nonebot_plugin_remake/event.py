@@ -52,6 +52,7 @@ class Event:
                     yield text
                 return
         prop.apply(self.effect)
+        prop.EVT.add(self.id)
         yield self.name
         if self.post_event:
             yield self.post_event
@@ -78,7 +79,6 @@ class EventManager:
         return weighted_events[0].event_id
 
     def run_event(self, event_id: int) -> Iterator[str]:
-        self.prop.EVT.add(event_id)
         return self.events[event_id].run(self.prop, self.run_event)
 
     def run_events(self, weighted_events: List[WeightedEvent]) -> Iterator[str]:

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot_plugin_remake"
-version = "0.2.0"
+version = "0.2.1"
 description = "适用于 Nonebot2 的人生重开模拟器插件"
 authors = ["meetwq <meetwq@gmail.com>"]
 license = "MIT"

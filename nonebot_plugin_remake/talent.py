@@ -33,6 +33,7 @@ class Talent:
     def run(self, prop: Property) -> List[str]:
         if self.check_condition(prop):
             prop.apply(self.effect)
+            prop.TLT.add(self.id)
             return [f'天赋【{self.name}】发动：{self.description}']
         return []
 
@@ -72,12 +73,14 @@ class TalentManager:
             for talent in random.sample(self.talent_dict[grade], k=count):
                 yield talent
 
+    def update_talent_prop(self):
+        self.prop.total += sum(t.status for t in self.talents)
+
     def update_talent(self) -> Iterator[str]:
         for t in self.talents:
             if t.id in self.prop.TLT:
                 continue
             for result in t.run(self.prop):
-                self.prop.TLT.add(t.id)
                 yield result
 
     def add_talent(self, talent: Talent):
