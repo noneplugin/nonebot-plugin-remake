@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "nonebot_plugin_remake"
+version = "0.2.0"
+description = "适用于 Nonebot2 的人生重开模拟器插件"
+authors = ["meetwq <meetwq@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7.3"
+nonebot2 = "^2.0.0-beta.1"
+nonebot-adapter-onebot = "^2.0.0-beta.1"
+
+[tool.poetry.dev-dependencies]
+nb-cli = "^0.6.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
