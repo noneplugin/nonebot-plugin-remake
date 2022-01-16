@@ -1,7 +1,8 @@
 import re
 import random
+import itertools
 import traceback
-from typing import List, Union
+from typing import List, Tuple, Union
 from nonebot import on_command
 from nonebot.rule import to_me
 from nonebot.typing import T_State
@@ -44,6 +45,15 @@ async def _(state: T_State = State()):
 
 @remake.got('nums')
 async def _(reply: str = ArgPlainText('nums'), state: T_State = State()):
+    def conflict_talents(talents: List[Talent]) -> Tuple[Talent, Talent]:
+        for (t1, t2) in itertools.combinations(talents, 2):
+            if t1.exclusive_with(t2):
+                return (t1, t2)
+        return None
+
+    life: Life = state.get('life')
+    talents: List[Talent] = state.get('talents')
+
     match = re.fullmatch(r'\s*(\d)\s*(\d)\s*(\d)\s*', reply)
     if match:
         nums = list(match.groups())
@@ -51,17 +61,23 @@ async def _(reply: str = ArgPlainText('nums'), state: T_State = State()):
         nums.sort()
         if nums[-1] >= 10:
             await remake.reject('请发送正确的编号')
+
+        talents_selected = [talents[n] for n in nums]
+        ts = conflict_talents(talents_selected)
+        if ts:
+            await remake.reject(f'你选择的天赋“{ts[0].name}”和“{ts[1].name}”不能同时拥有，请重新选择')
     elif reply == '随机':
-        nums = random.sample(range(10), 3)
-        nums.sort()
+        while True:
+            nums = random.sample(range(10), 3)
+            nums.sort()
+            talents_selected = [talents[n] for n in nums]
+            if not conflict_talents(talents_selected):
+                break
     elif re.fullmatch(r'[\d\s]+', reply):
         await remake.reject('请发送正确的编号，如“0 1 2”')
     else:
         await remake.finish('人生重开已取消')
 
-    life: Life = state.get('life')
-    talents: List[Talent] = state.get('talents')
-    talents_selected = [talents[n] for n in nums]
     life.set_talents(talents_selected)
     state['talents_selected'] = talents_selected
 
