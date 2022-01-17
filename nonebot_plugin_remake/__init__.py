@@ -14,7 +14,7 @@ from nonebot.log import logger
 from .life import Life
 from .talent import Talent
 
-__shana_plugin_name__ = 'remake'
+__help__plugin_name__ = 'remake'
 __des__ = '人生重开模拟器'
 __cmd__ = '''
 @我 remake/liferestart/人生重开
@@ -26,7 +26,7 @@ __example__ = '''
 __usage__ = f'{__des__}\nUsage:\n{__cmd__}\nExample:\n{__example__}'
 
 
-remake = on_command('remake', aliases={'liferestart', '人生重开', '人生重来'}, 
+remake = on_command('remake', aliases={'liferestart', '人生重开', '人生重来'},
                     block=True, rule=to_me(), priority=11)
 
 
@@ -38,7 +38,7 @@ async def _(state: T_State = State()):
     state['life'] = life_
     state['talents'] = talents
     msg = '请发送编号选择3个天赋，如“0 1 2”，或发送“随机”随机选择'
-    des = '\n'.join([f'{i}.{t.name}（{t.description}）' for i, t in enumerate(talents)])
+    des = '\n'.join([f'{i}.{t}' for i, t in enumerate(talents)])
     await remake.send(f"{msg}\n\n{des}")
 
 
@@ -117,7 +117,7 @@ async def _(bot: Bot, event: MessageEvent, reply: str = ArgPlainText('prop'), st
 
     await remake.send('你的人生正在重开...')
 
-    msgs = ["已选择以下天赋：\n" + '\n'.join([f'{t.name}（{t.description}）' for t in talents]),
+    msgs = ["已选择以下天赋：\n" + '\n'.join([str(t) for t in talents]),
             "已设置如下属性：\n" + f"颜值{nums[0]} 智力{nums[1]} 体质{nums[2]} 家境{nums[3]}"]
     try:
         life_msgs = []
@@ -128,10 +128,10 @@ async def _(bot: Bot, event: MessageEvent, reply: str = ArgPlainText('prop'), st
         msgs.extend(life_msgs)
         msgs.append(life_.gen_summary())
         if isinstance(event, GroupMessageEvent):
-            await send_forward_msg(bot, event, '人生重开模拟器', event.get_user_id(), msgs)
+            await send_forward_msg(bot, event, '人生重开模拟器', bot.self_id, msgs)
         else:
-            for i in msgs:
-                await bot.send(event=event, message=i)
+            for msg in msgs:
+                await remake.send(msg)
                 await asyncio.sleep(2)
     except:
         logger.warning(traceback.format_exc())
