@@ -1,7 +1,7 @@
 import json
 import random
 from pathlib import Path
-from typing import Dict, Iterator, List, Set, Union
+from typing import Dict, Iterator, List, Union
 
 from .property import Property
 from .utils import parse_condition
@@ -9,36 +9,38 @@ from .utils import parse_condition
 
 class Branch:
     def __init__(self, s: str):
-        s = s.split(':')
-        self.condition = parse_condition(s[0])
-        self.event_id: int = int(s[1])
+        ss = s.split(":")
+        self.condition = parse_condition(ss[0])
+        self.event_id: int = int(ss[1])
 
 
 class WeightedEvent:
     def __init__(self, s: Union[str, int]):
-        if not isinstance(s, str) or '*' not in s:
+        if not isinstance(s, str) or "*" not in s:
             self.weight: float = 1.0
             self.event_id: int = int(s)
         else:
-            s = s.split('*')
-            self.weight: float = float(s[1])
-            self.event_id: int = int(s[0])
+            ss = s.split("*")
+            self.weight: float = float(ss[1])
+            self.event_id: int = int(ss[0])
 
 
 class Event:
     def __init__(self, data: dict):
-        self.id: int = int(data['id'])
-        self.name: str = data['event']
-        self.include = parse_condition(data['include']) \
-            if 'include' in data else lambda _: True
-        self.exclude = parse_condition(data['exclude']) \
-            if 'exclude' in data else lambda _: False
-        self.effect: Dict[str, int] = data['effect'] \
-            if 'effect' in data else {}
-        self.branch: List[Branch] = [Branch(x) for x in data['branch']] \
-            if 'branch' in data else []
-        self.no_random = 'NoRandom' in data and data['NoRandom']
-        self.post_event = data['postEvent'] if 'postEvent' in data else None
+        self.id: int = int(data["id"])
+        self.name: str = data["event"]
+        self.include = (
+            parse_condition(data["include"]) if "include" in data else lambda _: True
+        )
+        self.exclude = (
+            parse_condition(data["exclude"]) if "exclude" in data else lambda _: False
+        )
+        self.effect: Dict[str, int] = data["effect"] if "effect" in data else {}
+        self.branch: List[Branch] = (
+            [Branch(x) for x in data["branch"]] if "branch" in data else []
+        )
+        self.no_random = "NoRandom" in data and data["NoRandom"]
+        self.post_event = data["postEvent"] if "postEvent" in data else None
 
     def check_condition(self, prop: Property) -> bool:
         return not self.no_random and self.include(prop) and not self.exclude(prop)
@@ -64,12 +66,15 @@ class EventManager:
         self.events: Dict[int, Event] = {}
 
     def load(self, path: Path):
-        data: Dict[str, dict] = json.load(path.open('r', encoding='utf8'))
+        data: Dict[str, dict] = json.load(path.open("r", encoding="utf8"))
         self.events = {int(k): Event(v) for k, v in data.items()}
 
     def rand_event(self, weighted_events: List[WeightedEvent]) -> int:
-        events_checked = [e for e in weighted_events
-                          if self.events[e.event_id].check_condition(self.prop)]
+        events_checked = [
+            e
+            for e in weighted_events
+            if self.events[e.event_id].check_condition(self.prop)
+        ]
         total = sum(e.weight for e in events_checked)
         rnd = random.random() * total
         for e in events_checked:

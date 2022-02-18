@@ -12,9 +12,11 @@ class AgeManager:
         self.ages: Dict[int, List[WeightedEvent]] = {}
 
     def load(self, path: Path):
-        data: Dict[str, dict] = json.load(path.open('r', encoding='utf8'))
-        self.ages = {int(k): [WeightedEvent(s) for s in v.get('event', [])]
-                     for k, v in data.items()}
+        data: Dict[str, dict] = json.load(path.open("r", encoding="utf8"))
+        self.ages = {
+            int(k): [WeightedEvent(s) for s in v.get("event", [])]
+            for k, v in data.items()
+        }
 
     def get_events(self) -> List[WeightedEvent]:
         return self.ages[self.prop.AGE]

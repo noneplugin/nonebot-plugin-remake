@@ -1,7 +1,7 @@
 import json
 import random
 from pathlib import Path
-from typing import Dict, List, Set, Iterator
+from typing import Dict, List, Iterator
 
 from .property import Property
 from .utils import parse_condition
@@ -9,20 +9,23 @@ from .utils import parse_condition
 
 class Talent:
     def __init__(self, data):
-        self.id: int = int(data['id'])
-        self.name: str = data['name']
-        self.description: str = data['description']
-        self.grade: int = int(data['grade'])
-        self.exclusive: List[int] = [int(x) for x in data['exclusive']] \
-            if 'exclusive' in data else []
-        self.effect: Dict[str, int] = data['effect'] \
-            if 'effect' in data else {}
-        self.status = int(data['status']) if 'status' in data else 0
-        self.condition = parse_condition(data['condition']) \
-            if 'condition' in data else lambda _: True
+        self.id: int = int(data["id"])
+        self.name: str = data["name"]
+        self.description: str = data["description"]
+        self.grade: int = int(data["grade"])
+        self.exclusive: List[int] = (
+            [int(x) for x in data["exclusive"]] if "exclusive" in data else []
+        )
+        self.effect: Dict[str, int] = data["effect"] if "effect" in data else {}
+        self.status = int(data["status"]) if "status" in data else 0
+        self.condition = (
+            parse_condition(data["condition"])
+            if "condition" in data
+            else lambda _: True
+        )
 
     def __str__(self) -> str:
-        return f'{self.name}（{self.description}）'
+        return f"{self.name}（{self.description}）"
 
     def exclusive_with(self, talent: "Talent") -> bool:
         return talent.id in self.exclusive or self.id in talent.exclusive
@@ -34,7 +37,7 @@ class Talent:
         if self.check_condition(prop):
             prop.apply(self.effect)
             prop.TLT.add(self.id)
-            return [f'天赋【{self.name}】发动：{self.description}']
+            return [f"天赋【{self.name}】发动：{self.description}"]
         return []
 
 
@@ -47,10 +50,11 @@ class TalentManager:
         self.grade_prob = [0.889, 0.1, 0.01, 0.001]
 
     def load(self, path: Path):
-        data: dict = json.load(path.open('r', encoding='utf8'))
+        data: dict = json.load(path.open("r", encoding="utf8"))
         talent_list: List[Talent] = [Talent(data) for data in data.values()]
-        self.talent_dict = {i: [t for t in talent_list if t.grade == i]
-                            for i in range(self.grade_count)}
+        self.talent_dict = {
+            i: [t for t in talent_list if t.grade == i] for i in range(self.grade_count)
+        }
 
     def rand_talents(self, count: int) -> Iterator[Talent]:
         def rand_grade():
@@ -61,7 +65,7 @@ class TalentManager:
                 rnd -= self.grade_prob[result]
             return result
 
-        counts = dict([(i, 0) for i in range(self.grade_count)])
+        counts = {i: 0 for i in range(self.grade_count)}
         for _ in range(count):
             counts[rand_grade()] += 1
         for grade in range(self.grade_count - 1, -1, -1):

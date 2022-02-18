@@ -77,20 +77,20 @@ sum_data = {
         {"min": 100, "judge": "罕见", "grade": 2},
         {"min": 110, "judge": "逆天", "grade": 3},
         {"min": 120, "judge": "传说", "grade": 3},
-    ]
+    ],
 }
 
 
 class Property:
     def __init__(self):
-        self.AGE = -1  # 年龄 age AGE
-        self.CHR = 0  # 颜值 charm CHR
-        self.INT = 0  # 智力 intelligence INT
-        self.STR = 0  # 体质 strength STR
-        self.MNY = 0  # 家境 money MNY
-        self.SPR = 5  # 快乐 spirit SPR
-        self.LIF = 1  # 生命 life LIFE
-        self.TMS = 1  # 次数 times TMS
+        self.AGE: int = -1  # 年龄 age AGE
+        self.CHR: int = 0  # 颜值 charm CHR
+        self.INT: int = 0  # 智力 intelligence INT
+        self.STR: int = 0  # 体质 strength STR
+        self.MNY: int = 0  # 家境 money MNY
+        self.SPR: int = 5  # 快乐 spirit SPR
+        self.LIF: int = 1  # 生命 life LIFE
+        self.TMS: int = 1  # 次数 times TMS
         self.TLT: Set[int] = set()  # 天赋 talent TLT
         self.EVT: Set[int] = set()  # 事件 event EVT
         self.AVT: Set[int] = set()  # 触发过的事件 Achieve Event
@@ -99,7 +99,7 @@ class Property:
     def apply(self, effect: Dict[str, int]):
         for key in effect:
             if key == "RDM":
-                k = ['CHR', 'INT', 'STR', 'MNY', 'SPR'][id(key) % 5]
+                k = ["CHR", "INT", "STR", "MNY", "SPR"][id(key) % 5]
                 setattr(self, k, getattr(self, k) + effect[key])
                 continue
             setattr(self, key, getattr(self, key) + effect[key])
@@ -107,18 +107,26 @@ class Property:
     def gen_summary(self) -> str:
         def summary(name: str, key: str):
             attr = getattr(self, key)
-            judge = sum_data[key][0]['judge']
+            judge = sum_data[key][0]["judge"]
             for res in sum_data[key]:
-                if attr >= res['min']:
-                    judge = res['judge']
+                if attr >= res["min"]:
+                    judge = res["judge"]
                 else:
                     break
             return f"{name}:  {attr}  {judge}"
 
-        self.SUM = int((self.CHR + self.INT + self.STR +
-                       self.MNY + self.SPR) * 2 + self.AGE / 2)
-        names = {'CHR': '颜值', 'INT': '智力', 'STR': '体质',
-                 'MNY': '家境', 'SPR': '快乐', 'AGE': '享年', 'SUM': '总评'}
+        self.SUM = int(
+            (self.CHR + self.INT + self.STR + self.MNY + self.SPR) * 2 + self.AGE / 2
+        )
+        names = {
+            "CHR": "颜值",
+            "INT": "智力",
+            "STR": "体质",
+            "MNY": "家境",
+            "SPR": "快乐",
+            "AGE": "享年",
+            "SUM": "总评",
+        }
         sums = [summary(name, key) for key, name in names.items()]
-        sums = '\n'.join(sums)
+        sums = "\n".join(sums)
         return f"==人生总结==\n\n{sums}"

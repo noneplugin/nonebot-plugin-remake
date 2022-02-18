@@ -7,7 +7,7 @@ from .event import EventManager
 from .property import Property
 from .talent import Talent, TalentManager
 
-resource_path = Path(__file__).parent / 'resources'
+resource_path = Path(__file__).parent / "resources"
 
 
 class Life:
@@ -18,13 +18,12 @@ class Life:
         self.talent = TalentManager(self.property)
 
     def load(self):
-        self.age.load(resource_path / 'age.json')
-        self.event.load(resource_path / 'events.json')
-        self.talent.load(resource_path / 'talents.json')
+        self.age.load(resource_path / "age.json")
+        self.event.load(resource_path / "events.json")
+        self.talent.load(resource_path / "talents.json")
 
     def prefix(self) -> Iterator[str]:
-        yield f'【{self.property.AGE}岁/颜{self.property.CHR}智{self.property.INT}' \
-            f'体{self.property.STR}钱{self.property.MNY}乐{self.property.SPR}】'
+        yield f"【{self.property.AGE}岁/颜{self.property.CHR}智{self.property.INT}" f"体{self.property.STR}钱{self.property.MNY}乐{self.property.SPR}】"
 
     def alive(self) -> bool:
         return self.property.LIF > 0
