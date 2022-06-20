@@ -1,16 +1,16 @@
 [tool.poetry]
 name = "nonebot_plugin_remake"
-version = "0.2.4"
+version = "0.2.5"
 description = "适用于 Nonebot2 的人生重开模拟器插件"
 authors = ["meetwq <meetwq@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/MeetWq/nonebot-plugin-remake"
-repository = "https://github.com/MeetWq/nonebot-plugin-remake"
+homepage = "https://github.com/noneplugin/nonebot-plugin-remake"
+repository = "https://github.com/noneplugin/nonebot-plugin-remake"
 
 [tool.poetry.dependencies]
 python = "^3.7.3"
-nonebot2 = "^2.0.0-beta.1"
+nonebot2 = "^2.0.0-beta.4"
 nonebot-adapter-onebot = "^2.0.0-beta.1"
 
 [tool.poetry.dev-dependencies]

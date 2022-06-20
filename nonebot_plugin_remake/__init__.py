@@ -4,9 +4,11 @@ import asyncio
 import itertools
 import traceback
 from typing import List, Tuple, Optional
+
 from nonebot import on_command
 from nonebot.rule import to_me
 from nonebot.typing import T_State
+from nonebot.plugin import PluginMetadata
 from nonebot.params import ArgPlainText, State
 from nonebot.adapters.onebot.v11 import (
     Bot,
@@ -18,16 +20,17 @@ from nonebot.log import logger
 from .life import Life
 from .talent import Talent
 
-__help__plugin_name__ = "remake"
-__des__ = "人生重开模拟器"
-__cmd__ = """
-@我 remake/liferestart/人生重开
-""".strip()
-__short_cmd__ = __cmd__
-__example__ = """
-@小Q remake
-""".strip()
-__usage__ = f"{__des__}\nUsage:\n{__cmd__}\nExample:\n{__example__}"
+__plugin_meta__ = PluginMetadata(
+    name="人生重开",
+    description="人生重开模拟器",
+    usage="@我 remake/liferestart/人生重开",
+    extra={
+        "unique_name": "remake",
+        "example": "@小Q remake",
+        "author": "meetwq <meetwq@gmail.com>",
+        "version": "0.2.5",
+    },
+)
 
 
 remake = on_command(
@@ -35,7 +38,7 @@ remake = on_command(
     aliases={"liferestart", "人生重开", "人生重来"},
     block=True,
     rule=to_me(),
-    priority=11,
+    priority=12,
 )
 
 
