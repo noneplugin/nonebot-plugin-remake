@@ -1,6 +1,5 @@
 import re
 import random
-import asyncio
 import itertools
 import traceback
 from typing import List, Tuple, Optional
@@ -28,7 +27,7 @@ __plugin_meta__ = PluginMetadata(
         "unique_name": "remake",
         "example": "@小Q remake",
         "author": "meetwq <meetwq@gmail.com>",
-        "version": "0.2.5",
+        "version": "0.2.6",
     },
 )
 
@@ -149,12 +148,7 @@ async def _(
         ]
         msgs.extend(life_msgs)
         msgs.append(life_.gen_summary())
-        if isinstance(event, GroupMessageEvent):
-            await send_forward_msg(bot, event, "人生重开模拟器", bot.self_id, msgs)
-        else:
-            for msg in msgs:
-                await remake.send(msg)
-                await asyncio.sleep(2)
+        await send_forward_msg(bot, event, "人生重开模拟器", bot.self_id, msgs)
     except:
         logger.warning(traceback.format_exc())
         await remake.finish("你的人生重开失败（")
@@ -162,7 +156,7 @@ async def _(
 
 async def send_forward_msg(
     bot: Bot,
-    event: GroupMessageEvent,
+    event: MessageEvent,
     name: str,
     uin: str,
     msgs: List[str],
@@ -171,6 +165,11 @@ async def send_forward_msg(
         return {"type": "node", "data": {"name": name, "uin": uin, "content": msg}}
 
     messages = [to_json(msg) for msg in msgs]
-    await bot.call_api(
-        "send_group_forward_msg", group_id=event.group_id, messages=messages
-    )
+    if isinstance(event, GroupMessageEvent):
+        await bot.call_api(
+            "send_group_forward_msg", group_id=event.group_id, messages=messages
+        )
+    else:
+        await bot.call_api(
+            "send_private_forward_msg", user_id=event.user_id, messages=messages
+        )
