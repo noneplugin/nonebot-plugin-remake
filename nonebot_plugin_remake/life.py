@@ -1,6 +1,6 @@
 import itertools
 from pathlib import Path
-from typing import List, Dict, Iterator
+from typing import Dict, Iterator, List
 
 from .age import AgeManager
 from .event import EventManager

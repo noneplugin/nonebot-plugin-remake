@@ -1,20 +1,16 @@
-import re
-import random
 import itertools
+import random
+import re
 import traceback
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent
+from nonebot.log import logger
+from nonebot.params import ArgPlainText
+from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot.typing import T_State
-from nonebot.plugin import PluginMetadata
-from nonebot.params import ArgPlainText
-from nonebot.adapters.onebot.v11 import (
-    Bot,
-    MessageEvent,
-    GroupMessageEvent,
-)
-from nonebot.log import logger
 
 from .life import Life
 from .talent import Talent
@@ -56,7 +52,7 @@ async def _(state: T_State):
 @remake.got("nums")
 async def _(state: T_State, reply: str = ArgPlainText("nums")):
     def conflict_talents(talents: List[Talent]) -> Optional[Tuple[Talent, Talent]]:
-        for (t1, t2) in itertools.combinations(talents, 2):
+        for t1, t2 in itertools.combinations(talents, 2):
             if t1.exclusive_with(t2):
                 return t1, t2
         return None

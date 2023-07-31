@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
-from .property import Property
 from .event import WeightedEvent
+from .property import Property
 
 
 class AgeManager:
