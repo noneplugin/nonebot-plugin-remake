@@ -4,6 +4,7 @@ from typing import List, NamedTuple
 
 from PIL import Image, ImageDraw, ImageFont
 from PIL.Image import Image as IMG
+from PIL.Image import Resampling
 from PIL.ImageFont import FreeTypeFont
 
 from .life import PerAgeProperty, PerAgeResult
@@ -110,6 +111,9 @@ def draw_results(results: List[PerAgeResult]) -> IMG:
     images: List[ImageResult] = []
     for result in results:
         image_prop = draw_properties(result.property)
+        image_prop = image_prop.resize(
+            (image_prop.width * 2 // 3, image_prop.height * 2 // 3), Resampling.LANCZOS
+        )
         image_age = draw_age(result.property.AGE)
         image_logs = draw_logs(result.event_log + result.talent_log)
         images.append(ImageResult(image_prop, image_age, image_logs))
@@ -340,7 +344,7 @@ def draw_life(
     images.append(draw_summary(summary))
 
     img_w = max([image.width for image in images])
-    img_h = sum([image.height for image in images])
+    img_h = sum([image.height for image in images]) + 100
     margin = 50
     frame = Image.new("RGBA", (img_w + margin * 2, img_h + margin * 2), "#04131F")
     y = margin
