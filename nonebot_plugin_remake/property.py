@@ -1,84 +1,198 @@
-from typing import Dict, Set
+from dataclasses import dataclass
+from typing import Dict, List, NamedTuple, Set
 
-sum_data = {
-    "CHR": [
-        {"min": 0, "judge": "地狱", "grade": 0},
-        {"min": 1, "judge": "折磨", "grade": 0},
-        {"min": 2, "judge": "不佳", "grade": 0},
-        {"min": 4, "judge": "普通", "grade": 0},
-        {"min": 7, "judge": "优秀", "grade": 1},
-        {"min": 9, "judge": "罕见", "grade": 2},
-        {"min": 11, "judge": "逆天", "grade": 3},
-    ],
-    "MNY": [
-        {"min": 0, "judge": "地狱", "grade": 0},
-        {"min": 1, "judge": "折磨", "grade": 0},
-        {"min": 2, "judge": "不佳", "grade": 0},
-        {"min": 4, "judge": "普通", "grade": 0},
-        {"min": 7, "judge": "优秀", "grade": 1},
-        {"min": 9, "judge": "罕见", "grade": 2},
-        {"min": 11, "judge": "逆天", "grade": 3},
-    ],
-    "SPR": [
-        {"min": 0, "judge": "地狱", "grade": 0},
-        {"min": 1, "judge": "折磨", "grade": 0},
-        {"min": 2, "judge": "不幸", "grade": 0},
-        {"min": 4, "judge": "普通", "grade": 0},
-        {"min": 7, "judge": "幸福", "grade": 1},
-        {"min": 9, "judge": "极乐", "grade": 2},
-        {"min": 11, "judge": "天命", "grade": 3},
-    ],
-    "INT": [
-        {"min": 0, "judge": "地狱", "grade": 0},
-        {"min": 1, "judge": "折磨", "grade": 0},
-        {"min": 2, "judge": "不佳", "grade": 0},
-        {"min": 4, "judge": "普通", "grade": 0},
-        {"min": 7, "judge": "优秀", "grade": 1},
-        {"min": 9, "judge": "罕见", "grade": 2},
-        {"min": 11, "judge": "逆天", "grade": 3},
-        {"min": 21, "judge": "识海", "grade": 3},
-        {"min": 131, "judge": "元神", "grade": 3},
-        {"min": 501, "judge": "仙魂", "grade": 3},
-    ],
-    "STR": [
-        {"min": 0, "judge": "地狱", "grade": 0},
-        {"min": 1, "judge": "折磨", "grade": 0},
-        {"min": 2, "judge": "不佳", "grade": 0},
-        {"min": 4, "judge": "普通", "grade": 0},
-        {"min": 7, "judge": "优秀", "grade": 1},
-        {"min": 9, "judge": "罕见", "grade": 2},
-        {"min": 11, "judge": "逆天", "grade": 3},
-        {"min": 21, "judge": "凝气", "grade": 3},
-        {"min": 101, "judge": "筑基", "grade": 3},
-        {"min": 401, "judge": "金丹", "grade": 3},
-        {"min": 1001, "judge": "元婴", "grade": 3},
-        {"min": 2001, "judge": "仙体", "grade": 3},
-    ],
-    "AGE": [
-        {"min": 0, "judge": "胎死腹中", "grade": 0},
-        {"min": 1, "judge": "早夭", "grade": 0},
-        {"min": 10, "judge": "少年", "grade": 0},
-        {"min": 18, "judge": "盛年", "grade": 0},
-        {"min": 40, "judge": "中年", "grade": 0},
-        {"min": 60, "judge": "花甲", "grade": 1},
-        {"min": 70, "judge": "古稀", "grade": 1},
-        {"min": 80, "judge": "杖朝", "grade": 2},
-        {"min": 90, "judge": "南山", "grade": 2},
-        {"min": 95, "judge": "不老", "grade": 3},
-        {"min": 100, "judge": "修仙", "grade": 3},
-        {"min": 500, "judge": "仙寿", "grade": 3},
-    ],
-    "SUM": [
-        {"min": 0, "judge": "地狱", "grade": 0},
-        {"min": 41, "judge": "折磨", "grade": 0},
-        {"min": 50, "judge": "不佳", "grade": 0},
-        {"min": 60, "judge": "普通", "grade": 0},
-        {"min": 80, "judge": "优秀", "grade": 1},
-        {"min": 100, "judge": "罕见", "grade": 2},
-        {"min": 110, "judge": "逆天", "grade": 3},
-        {"min": 120, "judge": "传说", "grade": 3},
-    ],
-}
+
+class PropGrade(NamedTuple):
+    min: int
+    judge: str
+    grade: int
+
+
+@dataclass
+class PropSummary:
+    value: int
+
+    @property
+    def name(self) -> str:
+        raise NotImplementedError
+
+    def grades(self) -> List[PropGrade]:
+        raise NotImplementedError
+
+    @property
+    def prop_grade(self) -> PropGrade:
+        for grade in reversed(self.grades()):
+            if self.value >= grade.min:
+                return grade
+        return self.grades()[0]
+
+    @property
+    def judge(self) -> str:
+        return self.prop_grade.judge
+
+    @property
+    def grade(self) -> int:
+        return self.prop_grade.grade
+
+    def __str__(self) -> str:
+        return f"{self.name}: {self.value} ({self.judge})"
+
+
+class CHRSummary(PropSummary):
+    @property
+    def name(self) -> str:
+        return "颜值"
+
+    def grades(self) -> List[PropGrade]:
+        return [
+            PropGrade(0, "地狱", 0),
+            PropGrade(1, "折磨", 0),
+            PropGrade(2, "不佳", 0),
+            PropGrade(4, "普通", 0),
+            PropGrade(7, "优秀", 1),
+            PropGrade(9, "罕见", 2),
+            PropGrade(11, "逆天", 3),
+        ]
+
+
+class INTSummary(PropSummary):
+    @property
+    def name(self) -> str:
+        return "智力"
+
+    def grades(self) -> List[PropGrade]:
+        return [
+            PropGrade(0, "地狱", 0),
+            PropGrade(1, "折磨", 0),
+            PropGrade(2, "不佳", 0),
+            PropGrade(4, "普通", 0),
+            PropGrade(7, "优秀", 1),
+            PropGrade(9, "罕见", 2),
+            PropGrade(11, "逆天", 3),
+            PropGrade(21, "识海", 3),
+            PropGrade(131, "元神", 3),
+            PropGrade(501, "仙魂", 3),
+        ]
+
+
+class STRSummary(PropSummary):
+    @property
+    def name(self) -> str:
+        return "体质"
+
+    def grades(self) -> List[PropGrade]:
+        return [
+            PropGrade(0, "地狱", 0),
+            PropGrade(1, "折磨", 0),
+            PropGrade(2, "不佳", 0),
+            PropGrade(4, "普通", 0),
+            PropGrade(7, "优秀", 1),
+            PropGrade(9, "罕见", 2),
+            PropGrade(11, "逆天", 3),
+            PropGrade(21, "凝气", 3),
+            PropGrade(101, "筑基", 3),
+            PropGrade(401, "金丹", 3),
+            PropGrade(1001, "元婴", 3),
+            PropGrade(2001, "仙体", 3),
+        ]
+
+
+class MNYSummary(PropSummary):
+    @property
+    def name(self) -> str:
+        return "家境"
+
+    def grades(self) -> List[PropGrade]:
+        return [
+            PropGrade(0, "地狱", 0),
+            PropGrade(1, "折磨", 0),
+            PropGrade(2, "不佳", 0),
+            PropGrade(4, "普通", 0),
+            PropGrade(7, "优秀", 1),
+            PropGrade(9, "罕见", 2),
+            PropGrade(11, "逆天", 3),
+        ]
+
+
+class SPRSummary(PropSummary):
+    @property
+    def name(self) -> str:
+        return "快乐"
+
+    def grades(self) -> List[PropGrade]:
+        return [
+            PropGrade(0, "地狱", 0),
+            PropGrade(1, "折磨", 0),
+            PropGrade(2, "不幸", 0),
+            PropGrade(4, "普通", 0),
+            PropGrade(7, "幸福", 1),
+            PropGrade(9, "极乐", 2),
+            PropGrade(11, "天命", 3),
+        ]
+
+
+class AGESummary(PropSummary):
+    @property
+    def name(self) -> str:
+        return "享年"
+
+    def grades(self) -> List[PropGrade]:
+        return [
+            PropGrade(0, "胎死腹中", 0),
+            PropGrade(1, "早夭", 0),
+            PropGrade(10, "少年", 0),
+            PropGrade(18, "盛年", 0),
+            PropGrade(40, "中年", 0),
+            PropGrade(60, "花甲", 1),
+            PropGrade(70, "古稀", 1),
+            PropGrade(80, "杖朝", 2),
+            PropGrade(90, "南山", 2),
+            PropGrade(95, "不老", 3),
+            PropGrade(100, "修仙", 3),
+            PropGrade(500, "仙寿", 3),
+        ]
+
+
+class SUMSummary(PropSummary):
+    @property
+    def name(self) -> str:
+        return "总评"
+
+    def grades(self) -> List[PropGrade]:
+        return [
+            PropGrade(0, "地狱", 0),
+            PropGrade(41, "折磨", 0),
+            PropGrade(50, "不佳", 0),
+            PropGrade(60, "普通", 0),
+            PropGrade(80, "优秀", 1),
+            PropGrade(100, "罕见", 2),
+            PropGrade(110, "逆天", 3),
+            PropGrade(120, "传说", 3),
+        ]
+
+
+@dataclass
+class Summary:
+    CHR: CHRSummary  # 颜值
+    INT: INTSummary  # 智力
+    STR: STRSummary  # 体质
+    MNY: MNYSummary  # 家境
+    SPR: SPRSummary  # 快乐
+    AGE: AGESummary  # 享年
+    SUM: SUMSummary  # 总评
+
+    def __str__(self) -> str:
+        return "==人生总结==\n\n" + "\n".join(
+            [
+                str(self.CHR),
+                str(self.INT),
+                str(self.STR),
+                str(self.MNY),
+                str(self.SPR),
+                str(self.AGE),
+                str(self.SUM),
+            ]
+        )
 
 
 class Property:
@@ -104,29 +218,16 @@ class Property:
                 continue
             setattr(self, key, getattr(self, key) + effect[key])
 
-    def gen_summary(self) -> str:
-        def summary(name: str, key: str):
-            attr = getattr(self, key)
-            judge = sum_data[key][0]["judge"]
-            for res in sum_data[key]:
-                if attr >= res["min"]:
-                    judge = res["judge"]
-                else:
-                    break
-            return f"{name}:  {attr}  {judge}"
-
-        self.SUM = int(
-            (self.CHR + self.INT + self.STR + self.MNY + self.SPR) * 2 + self.AGE / 2
+    def gen_summary(self) -> Summary:
+        self.SUM = (
+            self.CHR + self.INT + self.STR + self.MNY + self.SPR
+        ) * 2 + self.AGE // 2
+        return Summary(
+            CHR=CHRSummary(self.CHR),
+            INT=INTSummary(self.INT),
+            STR=STRSummary(self.STR),
+            MNY=MNYSummary(self.MNY),
+            SPR=SPRSummary(self.SPR),
+            AGE=AGESummary(self.AGE),
+            SUM=SUMSummary(self.SUM),
         )
-        names = {
-            "CHR": "颜值",
-            "INT": "智力",
-            "STR": "体质",
-            "MNY": "家境",
-            "SPR": "快乐",
-            "AGE": "享年",
-            "SUM": "总评",
-        }
-        sums = [summary(name, key) for key, name in names.items()]
-        sums = "\n".join(sums)
-        return f"==人生总结==\n\n{sums}"

@@ -2,17 +2,27 @@ import itertools
 import random
 import re
 import traceback
+from io import BytesIO
 from typing import List, Optional, Tuple
 
-from nonebot import on_command
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent
+from nonebot import get_driver, on_command
+from nonebot.adapters.onebot.v11 import (
+    Bot,
+    GroupMessageEvent,
+    MessageEvent,
+    MessageSegment,
+)
 from nonebot.log import logger
 from nonebot.params import ArgPlainText
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot.typing import T_State
+from nonebot.utils import run_sync
 
-from .life import Life
+from .config import Config
+from .drawer import draw_life, save_jpg
+from .life import Life, PerAgeProperty, PerAgeResult
+from .property import Summary
 from .talent import Talent
 
 __plugin_meta__ = PluginMetadata(
@@ -27,6 +37,7 @@ __plugin_meta__ = PluginMetadata(
     },
 )
 
+remake_config = Config.parse_obj(get_driver().config.dict())
 
 remake = on_command(
     "remake",
@@ -130,24 +141,49 @@ async def _(
 
     await remake.send("你的人生正在重开...")
 
-    msgs = [
-        "已选择以下天赋：\n" + "\n".join([str(t) for t in talents]),
-        "已设置如下属性：\n" + f"颜值{nums[0]} 智力{nums[1]} 体质{nums[2]} 家境{nums[3]}",
-    ]
+    init_prop = life_.get_property()
+    results = [result for result in life_.run()]
+    summary = life_.gen_summary()
+
     try:
-        life_msgs = []
-        for s in life_.run():
-            life_msgs.append("\n".join(s))
-        n = 5
-        life_msgs = [
-            "\n\n".join(life_msgs[i : i + n]) for i in range(0, len(life_msgs), n)
-        ]
-        msgs.extend(life_msgs)
-        msgs.append(life_.gen_summary())
-        await send_forward_msg(bot, event, "人生重开模拟器", bot.self_id, msgs)
+        if remake_config.remake_send_forword_msg:
+            msgs = get_life_msgs(talents, init_prop, results, summary)
+            await send_forward_msg(bot, event, "人生重开模拟器", bot.self_id, msgs)
+        else:
+            img = await get_life_img(talents, init_prop, results, summary)
+            await remake.send(MessageSegment.image(img))
     except:
         logger.warning(traceback.format_exc())
         await remake.finish("你的人生重开失败（")
+
+
+@run_sync
+def get_life_img(
+    talents: List[Talent],
+    init_prop: PerAgeProperty,
+    results: List[PerAgeResult],
+    summary: Summary,
+) -> BytesIO:
+    return save_jpg(draw_life(talents, init_prop, results, summary))
+
+
+def get_life_msgs(
+    talents: List[Talent],
+    init_prop: PerAgeProperty,
+    results: List[PerAgeResult],
+    summary: Summary,
+):
+    msgs = [
+        "已选择以下天赋：\n" + "\n".join([str(t) for t in talents]),
+        "已设置如下属性：\n"
+        + f"颜值{init_prop.CHR} 智力{init_prop.INT} 体质{init_prop.STR} 家境{init_prop.MNY}",
+    ]
+    life_msgs = [str(result) for result in results]
+    n = 5
+    life_msgs = ["\n\n".join(life_msgs[i : i + n]) for i in range(0, len(life_msgs), n)]
+    msgs.extend(life_msgs)
+    msgs.append(str(summary))
+    return msgs
 
 
 async def send_forward_msg(
