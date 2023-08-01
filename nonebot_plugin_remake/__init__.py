@@ -5,19 +5,19 @@ import traceback
 from io import BytesIO
 from typing import List, Optional, Tuple
 
-from nonebot import get_driver, on_command
-from nonebot.adapters.onebot.v11 import (
-    Bot,
-    GroupMessageEvent,
-    MessageEvent,
-    MessageSegment,
-)
+from nonebot import get_driver, on_command, require
+from nonebot.adapters import Bot, Event
 from nonebot.log import logger
 from nonebot.params import ArgPlainText
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot.utils import run_sync
+
+require("nonebot_plugin_saa")
+
+from nonebot_plugin_saa import Image, MessageFactory
+from nonebot_plugin_saa import __plugin_meta__ as saa_plugin_meta
 
 from .config import Config
 from .drawer import draw_life, save_jpg
@@ -29,15 +29,57 @@ __plugin_meta__ = PluginMetadata(
     name="人生重开",
     description="人生重开模拟器",
     usage="@我 remake/liferestart/人生重开",
+    type="application",
+    homepage="https://github.com/noneplugin/nonebot-plugin-remake",
+    config=Config,
+    supported_adapters=saa_plugin_meta.supported_adapters,
     extra={
         "unique_name": "remake",
         "example": "@小Q remake",
         "author": "meetwq <meetwq@gmail.com>",
-        "version": "0.2.7",
+        "version": "0.3.0",
     },
 )
 
 remake_config = Config.parse_obj(get_driver().config.dict())
+
+onebot_v11_loaded = False
+if remake_config.remake_send_forword_msg:
+    try:
+        from nonebot.adapters.onebot.v11 import Bot as V11Bot
+        from nonebot.adapters.onebot.v11 import GroupMessageEvent as V11GMEvent
+        from nonebot.adapters.onebot.v11 import MessageEvent as V11MEvent
+
+        def is_onebot_v11(bot: Bot):
+            return isinstance(bot, V11Bot)
+
+        async def send_forward_msg(
+            bot: V11Bot,
+            event: V11MEvent,
+            name: str,
+            uin: str,
+            msgs: List[str],
+        ):
+            def to_json(msg):
+                return {
+                    "type": "node",
+                    "data": {"name": name, "uin": uin, "content": msg},
+                }
+
+            messages = [to_json(msg) for msg in msgs]
+            if isinstance(event, V11GMEvent):
+                await bot.call_api(
+                    "send_group_forward_msg", group_id=event.group_id, messages=messages
+                )
+            else:
+                await bot.call_api(
+                    "send_private_forward_msg", user_id=event.user_id, messages=messages
+                )
+
+        onebot_v11_loaded = True
+    except ImportError:
+        logger.warning("无法加载 OneBot V11 适配器，发送转发消息设置失效")
+
 
 remake = on_command(
     "remake",
@@ -108,7 +150,7 @@ async def _(state: T_State, reply: str = ArgPlainText("nums")):
 @remake.got("prop")
 async def _(
     bot: Bot,
-    event: MessageEvent,
+    event: Event,
     state: T_State,
     reply: str = ArgPlainText("prop"),
 ):
@@ -146,12 +188,19 @@ async def _(
     summary = life_.gen_summary()
 
     try:
-        if remake_config.remake_send_forword_msg:
+        if (
+            remake_config.remake_send_forword_msg
+            and onebot_v11_loaded
+            and is_onebot_v11(bot)
+        ):
+            assert isinstance(bot, V11Bot)
+            assert isinstance(event, V11MEvent)
             msgs = get_life_msgs(talents, init_prop, results, summary)
             await send_forward_msg(bot, event, "人生重开模拟器", bot.self_id, msgs)
-        else:
-            img = await get_life_img(talents, init_prop, results, summary)
-            await remake.send(MessageSegment.image(img))
+            return
+
+        img = await get_life_img(talents, init_prop, results, summary)
+        await MessageFactory(Image(img)).send()
     except:
         logger.warning(traceback.format_exc())
         await remake.finish("你的人生重开失败（")
@@ -184,24 +233,3 @@ def get_life_msgs(
     msgs.extend(life_msgs)
     msgs.append(str(summary))
     return msgs
-
-
-async def send_forward_msg(
-    bot: Bot,
-    event: MessageEvent,
-    name: str,
-    uin: str,
-    msgs: List[str],
-):
-    def to_json(msg):
-        return {"type": "node", "data": {"name": name, "uin": uin, "content": msg}}
-
-    messages = [to_json(msg) for msg in msgs]
-    if isinstance(event, GroupMessageEvent):
-        await bot.call_api(
-            "send_group_forward_msg", group_id=event.group_id, messages=messages
-        )
-    else:
-        await bot.call_api(
-            "send_private_forward_msg", user_id=event.user_id, messages=messages
-        )
