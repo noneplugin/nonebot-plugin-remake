@@ -1,6 +1,6 @@
 from io import BytesIO
 from pathlib import Path
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Optional
 
 from PIL import Image, ImageDraw, ImageFont
 from PIL.Image import Image as IMG
@@ -23,6 +23,40 @@ def get_font(fontsize: int) -> FreeTypeFont:
 
 def get_icon(item: str) -> IMG:
     return Image.open(image_dir / f"icon_{item}.png")
+
+
+def break_text(text: str, font: FreeTypeFont, length: int) -> List[str]:
+    lines = []
+    line = ""
+    for word in text:
+        if font.getlength(line + word) > length:
+            lines.append(line)
+            line = ""
+        line += word
+    if line:
+        lines.append(line)
+    return lines
+
+
+def text_to_image(
+    texts: List[str],
+    fontsize: int = 10,
+    fill: str = "black",
+    spacing: int = 4,
+    max_width: Optional[int] = None,
+) -> IMG:
+    font = get_font(fontsize)
+    texts = sum([text.splitlines() for text in texts], [])
+    if max_width:
+        texts = sum([break_text(text, font, max_width) for text in texts], [])
+    max_length = int(max([font.getlength(text) for text in texts]))
+    ascent, descent = font.getmetrics()
+    h = ascent * len(texts) + spacing * (len(texts) - 1) + descent
+    image = Image.new("RGBA", (max_length, h))
+    draw = ImageDraw.Draw(image)
+    text = "\n".join(texts)
+    draw.multiline_text((0, 0), text, font=font, fill=fill, spacing=spacing)
+    return image
 
 
 def draw_init_properties(prop: PerAgeProperty) -> IMG:
@@ -79,27 +113,12 @@ def draw_properties(prop: PerAgeProperty) -> IMG:
     return image
 
 
-def text_to_image(
-    texts: List[str], fontsize: int = 10, fill: str = "black", spacing=4
-) -> IMG:
-    texts = sum([text.splitlines() for text in texts], [])
-    font = get_font(fontsize)
-    max_length = int(max([font.getlength(text) for text in texts]))
-    ascent, descent = font.getmetrics()
-    h = ascent * len(texts) + spacing * (len(texts) - 1) + descent
-    image = Image.new("RGBA", (max_length, h))
-    draw = ImageDraw.Draw(image)
-    text = "\n".join(texts)
-    draw.multiline_text((0, 0), text, font=font, fill=fill, spacing=spacing)
-    return image
-
-
 def draw_age(age: int) -> IMG:
     return text_to_image([f"{age}岁："], fontsize=45, fill="#C3DE5A")
 
 
 def draw_logs(logs: List[str]) -> IMG:
-    return text_to_image(logs, fontsize=45, fill="#F0F2F3", spacing=30)
+    return text_to_image(logs, fontsize=45, fill="#F0F2F3", spacing=30, max_width=1200)
 
 
 def draw_results(results: List[PerAgeResult]) -> IMG:
@@ -288,19 +307,6 @@ def draw_title(text: str) -> IMG:
     )
     titlebar.paste(right, (int((titlebar.width + length) / 2 + 10), 140), mask=right)
     return titlebar
-
-
-def break_text(text: str, font: FreeTypeFont, length: int) -> List[str]:
-    lines = []
-    line = ""
-    for word in text:
-        if font.getlength(line + word) > length:
-            lines.append(line)
-            line = ""
-        line += word
-    if line:
-        lines.append(line)
-    return lines
 
 
 def draw_talent(talent: Talent) -> IMG:
