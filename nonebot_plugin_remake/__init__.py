@@ -37,7 +37,7 @@ __plugin_meta__ = PluginMetadata(
         "unique_name": "remake",
         "example": "@小Q remake",
         "author": "meetwq <meetwq@gmail.com>",
-        "version": "0.3.0",
+        "version": "0.3.1",
     },
 )
 
