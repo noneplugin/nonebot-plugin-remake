@@ -19,9 +19,15 @@ nb plugin install nonebot_plugin_remake
 pip install nonebot_plugin_remake
 ```
 
-本插件使用了 [go-cqhttp](https://github.com/Mrs4s/go-cqhttp) 的 `send_group_forward_msg` 和 `send_private_forward_msg` 接口 来发送合并转发消息，
 
-发送私聊合并转发消息需要使用 `v1.0.0-rc2` 版本以上的 go-cqhttp
+### 配置项
+
+> 以下配置项可在 `.env.*` 文件中设置，具体参考 [NoneBot 配置方式](https://v2.nonebot.dev/docs/tutorial/configuration#%E9%85%8D%E7%BD%AE%E6%96%B9%E5%BC%8F)
+
+#### `remake_send_forword_msg`
+ - 类型：`bool`
+ - 默认：`False`
+ - 说明：是否以合并转发消息的形式发送（仅对于 OneBot V11 适配器有效，且需要 [go-cqhttp](https://github.com/Mrs4s/go-cqhttp) `v1.0.0-rc2` 以上版本）
 
 
 ### 使用
@@ -38,11 +44,14 @@ pip install nonebot_plugin_remake
 #### 示例：
 
 <div align="left">
-  <img src="https://s2.loli.net/2022/01/15/rahwIWFfuvLGPgm.jpg" width="400" />
+  <img src="https://s2.loli.net/2023/08/02/25YjUFKwvnWisNr.jpg" width="400" />
+  <img src="https://s2.loli.net/2023/08/02/b4L7WvnAyHeYUPZ.jpg" width="400" />
 </div>
 
 
 ### 特别感谢
+
+- [VickScarlet/lifeRestart](https://github.com/VickScarlet/lifeRestart) やり直すんだ。そして、次はうまくやる。
 
 - [cc004/lifeRestart-py](https://github.com/cc004/lifeRestart-py) lifeRestart game in python
 
