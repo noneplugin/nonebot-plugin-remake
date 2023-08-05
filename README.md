@@ -22,7 +22,7 @@ pip install nonebot_plugin_remake
 
 ### 配置项
 
-> 以下配置项可在 `.env.*` 文件中设置，具体参考 [NoneBot 配置方式](https://v2.nonebot.dev/docs/tutorial/configuration#%E9%85%8D%E7%BD%AE%E6%96%B9%E5%BC%8F)
+> 以下配置项可在 `.env.*` 文件中设置，具体参考 [NoneBot 配置方式](https://nonebot.dev/docs/appendices/config)
 
 #### `remake_send_forword_msg`
  - 类型：`bool`
@@ -34,7 +34,7 @@ pip install nonebot_plugin_remake
 
 #### 触发方式：
 
-**以下命令需要加[命令前缀](https://v2.nonebot.dev/docs/api/config#Config-command_start) (默认为`/`)，可自行设置为空**
+**以下命令需要加[命令前缀](https://nonebot.dev/docs/appendices/config#command-start-和-command-separator) (默认为`/`)，可自行设置为空**
 
 ```
 @机器人 remake/liferestart/人生重开/人生重来
