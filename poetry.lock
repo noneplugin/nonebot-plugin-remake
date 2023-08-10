@@ -292,28 +292,29 @@ files = [
 
 [[package]]
 name = "nonebot-adapter-onebot"
-version = "2.2.3"
+version = "2.2.4"
 description = "OneBot(CQHTTP) adapter for nonebot2"
 optional = true
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "nonebot_adapter_onebot-2.2.3-py3-none-any.whl", hash = "sha256:e715e05578cb58cf42adddb0bac6c060a6ea7c9b2f18e6f011786bbc2bc8d0bd"},
-    {file = "nonebot_adapter_onebot-2.2.3.tar.gz", hash = "sha256:e0ac165536a24f7c5e620092ab596022e8f85d462c17ec8d7a17b191093b4859"},
+    {file = "nonebot_adapter_onebot-2.2.4-py3-none-any.whl", hash = "sha256:ae9971bb77a2984d6ca097d5565132723b051dafdfd1cef954a62f45684ae62c"},
+    {file = "nonebot_adapter_onebot-2.2.4.tar.gz", hash = "sha256:1024b503514f87d6262adf1bde6f160b3a159afc4f6c21987eece3dacb4762dd"},
 ]
 
 [package.dependencies]
 msgpack = ">=1.0.3,<2.0.0"
 nonebot2 = ">=2.0.0-beta.3,<3.0.0"
+typing-extensions = ">=4.0.0,<5.0.0"
 
 [[package]]
 name = "nonebot-plugin-send-anything-anywhere"
-version = "0.2.7"
+version = "0.3.0"
 description = "An adaptor for nonebot2 adaptors"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "nonebot_plugin_send_anything_anywhere-0.2.7-py3-none-any.whl", hash = "sha256:b9932bf2fe990825a870d061eacf6df9129f4d8b2b4a8a468f9f25d673e267a3"},
-    {file = "nonebot_plugin_send_anything_anywhere-0.2.7.tar.gz", hash = "sha256:99367d4b4cf302fef32f9dc195dc2abacc7ed95cc665bc6a7e72e159bee4c15a"},
+    {file = "nonebot_plugin_send_anything_anywhere-0.3.0-py3-none-any.whl", hash = "sha256:30ed3346e9acd0b80f7be5306b70f581d6a20f90388e46ccc984303d4c4449be"},
+    {file = "nonebot_plugin_send_anything_anywhere-0.3.0.tar.gz", hash = "sha256:1ec98b48c842cdc656fbc9d90ee44a60eb77761d94843cf03cc1327f1b04773c"},
 ]
 
 [package.dependencies]
@@ -675,4 +676,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "c2b073c80e0fefabfa2c1d4837c3cd71100f10b0950d2f738381ff8346c4d225"
+content-hash = "e5746ef1592708215fe34bde7e6ca4416b0afce0278303f160748c94afd4c2da"
