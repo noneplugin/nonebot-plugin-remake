@@ -74,8 +74,7 @@ class TalentManager:
             if count > n:
                 counts[grade - 1] += count - n
                 count = n
-            for talent in random.sample(self.talent_dict[grade], k=count):
-                yield talent
+            yield from random.sample(self.talent_dict[grade], k=count)
 
     def update_talent_prop(self):
         self.prop.total += sum(t.status for t in self.talents)
@@ -84,8 +83,7 @@ class TalentManager:
         for t in self.talents:
             if t.id in self.prop.TLT:
                 continue
-            for result in t.run(self.prop):
-                yield result
+            yield from t.run(self.prop)
 
     def add_talent(self, talent: Talent):
         for t in self.talents:

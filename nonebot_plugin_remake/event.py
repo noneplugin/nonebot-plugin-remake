@@ -50,8 +50,7 @@ class Event:
             if b.condition(prop):
                 prop.apply(self.effect)
                 yield self.name
-                for text in runner(b.event_id):
-                    yield text
+                yield from runner(b.event_id)
                 return
         prop.apply(self.effect)
         prop.EVT.add(self.id)

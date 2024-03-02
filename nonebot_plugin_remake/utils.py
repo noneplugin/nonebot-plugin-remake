@@ -1,18 +1,20 @@
 import re
 from typing import List
 
+from nonebot.log import logger
+
 
 class DummyList(list):
-    def __init__(self, l: List[int]):
-        super().__init__(l)
+    def __init__(self, lst: List[int]):
+        super().__init__(lst)
 
-    def __contains__(self, o: object) -> bool:
-        if type(o) is set:
+    def __contains__(self, obj: object) -> bool:
+        if isinstance(0, set):
             for x in self:
-                if x in o:
+                if x in obj:
                     return True
             return False
-        return super().__contains__(o)
+        return super().__contains__(obj)
 
 
 def parse_condition(cond: str):
@@ -31,6 +33,6 @@ def parse_condition(cond: str):
             func = eval(f"lambda x: {cond2}")
             func.__doc__ = cond2
             return func
-        except:
-            print(f"[WARNING] missing ) in {cond}")
+        except Exception:
+            logger.warning(f"[WARNING] missing ) in {cond}")
             cond2 += ")"

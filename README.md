@@ -20,16 +20,6 @@ pip install nonebot_plugin_remake
 ```
 
 
-### 配置项
-
-> 以下配置项可在 `.env.*` 文件中设置，具体参考 [NoneBot 配置方式](https://nonebot.dev/docs/appendices/config)
-
-#### `remake_send_forword_msg`
- - 类型：`bool`
- - 默认：`False`
- - 说明：是否以合并转发消息的形式发送（仅对于 OneBot V11 适配器有效，且需要 [go-cqhttp](https://github.com/Mrs4s/go-cqhttp) `v1.0.0-rc2` 以上版本）
-
-
 ### 使用
 
 #### 触发方式：

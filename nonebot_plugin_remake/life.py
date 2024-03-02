@@ -20,7 +20,10 @@ class PerAgeProperty:
     SPR: int  # 快乐
 
     def __str__(self) -> str:
-        return f"【{self.AGE}岁/颜{self.CHR}智{self.INT}体{self.STR}钱{self.MNY}乐{self.SPR}】"
+        return (
+            f"【{self.AGE}岁/颜{self.CHR}智{self.INT}"
+            f"体{self.STR}钱{self.MNY}乐{self.SPR}】"
+        )
 
 
 @dataclass
