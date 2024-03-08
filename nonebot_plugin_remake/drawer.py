@@ -122,10 +122,23 @@ def draw_logs(logs: List[str]) -> IMG:
 
 
 def draw_results(results: List[PerAgeResult]) -> IMG:
+    margin_prop = 20
+    margin_logs = 50
+
     class ImageResult(NamedTuple):
         prop: IMG
         age: IMG
         logs: IMG
+
+        @property
+        def width(self) -> int:
+            return max(self.prop.width, self.age.width + self.logs.width)
+
+        @property
+        def height(self) -> int:
+            return (
+                self.prop.height + margin_prop + max(self.age.height, self.logs.height)
+            )
 
     images: List[ImageResult] = []
     for result in results:
@@ -137,25 +150,51 @@ def draw_results(results: List[PerAgeResult]) -> IMG:
         image_logs = draw_logs(result.event_log + result.talent_log)
         images.append(ImageResult(image_prop, image_age, image_logs))
 
-    img_w = max([(image.age.width + image.logs.width) for image in images])
-    margin_prop = 20
-    margin_logs = 50
+    image_groups: List[List[ImageResult]] = []
+    max_height = 10000
+    sum_height = sum(image.height for image in images) + margin_logs * (len(images) - 1)
+    num_groups = (sum_height - 1) // max_height + 1
+    results_height = sum_height // num_groups
+    if num_groups > 1:
+        results_height += max(image.height for image in images)
+
     img_h = 0
+    temp_images: List[ImageResult] = []
     for image in images:
-        img_h += image.prop.height + max(image.logs.height, image.age.height)
-    img_h += margin_prop * len(images)
-    img_h += margin_logs * (len(images) - 1)
+        if img_h + image.height > results_height:
+            image_groups.append(temp_images)
+            temp_images = []
+            max_height = max(max_height, img_h - margin_logs)
+            img_h = 0
+        img_h += image.height + margin_logs
+        temp_images.append(image)
+    if temp_images:
+        image_groups.append(temp_images)
+        max_height = max(max_height, img_h - margin_logs)
 
-    age_w = max([image.age.width for image in images])
-
+    margin_group = 100
+    img_w = sum(
+        max(image.width for image in image_group) for image_group in image_groups
+    ) + margin_group * (len(image_groups) - 1)
+    img_h = max(
+        sum(image.height for image in image_group)
+        + margin_logs * (len(image_group) - 1)
+        for image_group in image_groups
+    )
     img = Image.new("RGBA", (img_w, img_h))
+    x = 0
     y = 0
-    for image in images:
-        img.paste(image.prop, (0, y), mask=image.prop)
-        y += image.prop.height + margin_prop
-        img.paste(image.age, (age_w - image.age.width, y), mask=image.age)
-        img.paste(image.logs, (age_w, y), mask=image.logs)
-        y += max(image.logs.height, image.age.height) + margin_logs
+    for image_group in image_groups:
+        img_w = max(image.width for image in image_group)
+        age_w = max([image.age.width for image in image_group])
+        for image in image_group:
+            img.paste(image.prop, (x, y), mask=image.prop)
+            y += image.prop.height + margin_prop
+            img.paste(image.age, (x + age_w - image.age.width, y), mask=image.age)
+            img.paste(image.logs, (x + age_w, y), mask=image.logs)
+            y += max(image.logs.height, image.age.height) + margin_logs
+        x += img_w + margin_group
+        y = 0
 
     padding = 50
     inner_w = img.width + padding * 2
