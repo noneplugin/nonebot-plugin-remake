@@ -9,7 +9,7 @@ class DummyList(list):
         super().__init__(lst)
 
     def __contains__(self, obj: object) -> bool:
-        if isinstance(0, set):
+        if isinstance(obj, set):
             for x in self:
                 if x in obj:
                     return True
