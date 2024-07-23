@@ -3,7 +3,7 @@ import random
 import re
 import traceback
 from io import BytesIO
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from nonebot import on_command, require
 from nonebot.log import logger
@@ -61,14 +61,14 @@ async def _(
     state: T_State,
     reply: str = ArgPlainText("nums"),
 ):
-    def conflict_talents(talents: List[Talent]) -> Optional[Tuple[Talent, Talent]]:
+    def conflict_talents(talents: list[Talent]) -> Optional[tuple[Talent, Talent]]:
         for t1, t2 in itertools.combinations(talents, 2):
             if t1.exclusive_with(t2):
                 return t1, t2
         return None
 
     life_: Life = state["life"]
-    talents: List[Talent] = state["talents"]
+    talents: list[Talent] = state["talents"]
 
     match = re.fullmatch(r"\s*(\d)\s*(\d)\s*(\d)\s*", reply)
     if match:
@@ -113,7 +113,7 @@ async def _(
     reply: str = ArgPlainText("prop"),
 ):
     life_: Life = state["life"]
-    talents: List[Talent] = state["talents_selected"]
+    talents: list[Talent] = state["talents_selected"]
     total_prop = life_.total_property()
 
     match = re.fullmatch(r"\s*(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s*", reply)
@@ -155,9 +155,9 @@ async def _(
 
 @run_sync
 def get_life_img(
-    talents: List[Talent],
+    talents: list[Talent],
     init_prop: PerAgeProperty,
-    results: List[PerAgeResult],
+    results: list[PerAgeResult],
     summary: Summary,
 ) -> BytesIO:
     return save_jpg(draw_life(talents, init_prop, results, summary))

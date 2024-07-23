@@ -1,11 +1,10 @@
 import re
-from typing import List
 
 from nonebot.log import logger
 
 
 class DummyList(list):
-    def __init__(self, lst: List[int]):
+    def __init__(self, lst: list[int]):
         super().__init__(lst)
 
     def __contains__(self, obj: object) -> bool:

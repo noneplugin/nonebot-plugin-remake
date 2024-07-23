@@ -1,7 +1,8 @@
 import json
 import random
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Dict, Iterator, List, Union
+from typing import Union
 
 from .property import Property
 from .utils import parse_condition
@@ -35,8 +36,8 @@ class Event:
         self.exclude = (
             parse_condition(data["exclude"]) if "exclude" in data else lambda _: False
         )
-        self.effect: Dict[str, int] = data["effect"] if "effect" in data else {}
-        self.branch: List[Branch] = (
+        self.effect: dict[str, int] = data["effect"] if "effect" in data else {}
+        self.branch: list[Branch] = (
             [Branch(x) for x in data["branch"]] if "branch" in data else []
         )
         self.no_random = "NoRandom" in data and data["NoRandom"]
@@ -62,13 +63,13 @@ class Event:
 class EventManager:
     def __init__(self, prop: Property):
         self.prop = prop
-        self.events: Dict[int, Event] = {}
+        self.events: dict[int, Event] = {}
 
     def load(self, path: Path):
-        data: Dict[str, dict] = json.load(path.open("r", encoding="utf8"))
+        data: dict[str, dict] = json.load(path.open("r", encoding="utf8"))
         self.events = {int(k): Event(v) for k, v in data.items()}
 
-    def rand_event(self, weighted_events: List[WeightedEvent]) -> int:
+    def rand_event(self, weighted_events: list[WeightedEvent]) -> int:
         events_checked = [
             e
             for e in weighted_events
@@ -85,6 +86,6 @@ class EventManager:
     def run_event(self, event_id: int) -> Iterator[str]:
         return self.events[event_id].run(self.prop, self.run_event)
 
-    def run_events(self, weighted_events: List[WeightedEvent]) -> Iterator[str]:
+    def run_events(self, weighted_events: list[WeightedEvent]) -> Iterator[str]:
         event_id = self.rand_event(weighted_events)
         return self.run_event(event_id)

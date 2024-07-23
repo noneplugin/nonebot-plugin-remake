@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List, NamedTuple, Set
+from typing import NamedTuple
 
 
 class PropGrade(NamedTuple):
@@ -16,7 +16,7 @@ class PropSummary:
     def name(self) -> str:
         raise NotImplementedError
 
-    def grades(self) -> List[PropGrade]:
+    def grades(self) -> list[PropGrade]:
         raise NotImplementedError
 
     @property
@@ -43,7 +43,7 @@ class CHRSummary(PropSummary):
     def name(self) -> str:
         return "颜值"
 
-    def grades(self) -> List[PropGrade]:
+    def grades(self) -> list[PropGrade]:
         return [
             PropGrade(0, "地狱", 0),
             PropGrade(1, "折磨", 0),
@@ -60,7 +60,7 @@ class INTSummary(PropSummary):
     def name(self) -> str:
         return "智力"
 
-    def grades(self) -> List[PropGrade]:
+    def grades(self) -> list[PropGrade]:
         return [
             PropGrade(0, "地狱", 0),
             PropGrade(1, "折磨", 0),
@@ -80,7 +80,7 @@ class STRSummary(PropSummary):
     def name(self) -> str:
         return "体质"
 
-    def grades(self) -> List[PropGrade]:
+    def grades(self) -> list[PropGrade]:
         return [
             PropGrade(0, "地狱", 0),
             PropGrade(1, "折磨", 0),
@@ -102,7 +102,7 @@ class MNYSummary(PropSummary):
     def name(self) -> str:
         return "家境"
 
-    def grades(self) -> List[PropGrade]:
+    def grades(self) -> list[PropGrade]:
         return [
             PropGrade(0, "地狱", 0),
             PropGrade(1, "折磨", 0),
@@ -119,7 +119,7 @@ class SPRSummary(PropSummary):
     def name(self) -> str:
         return "快乐"
 
-    def grades(self) -> List[PropGrade]:
+    def grades(self) -> list[PropGrade]:
         return [
             PropGrade(0, "地狱", 0),
             PropGrade(1, "折磨", 0),
@@ -136,7 +136,7 @@ class AGESummary(PropSummary):
     def name(self) -> str:
         return "享年"
 
-    def grades(self) -> List[PropGrade]:
+    def grades(self) -> list[PropGrade]:
         return [
             PropGrade(0, "胎死腹中", 0),
             PropGrade(1, "早夭", 0),
@@ -158,7 +158,7 @@ class SUMSummary(PropSummary):
     def name(self) -> str:
         return "总评"
 
-    def grades(self) -> List[PropGrade]:
+    def grades(self) -> list[PropGrade]:
         return [
             PropGrade(0, "地狱", 0),
             PropGrade(41, "折磨", 0),
@@ -205,12 +205,12 @@ class Property:
         self.SPR: int = 5  # 快乐 spirit SPR
         self.LIF: int = 1  # 生命 life LIFE
         self.TMS: int = 1  # 次数 times TMS
-        self.TLT: Set[int] = set()  # 天赋 talent TLT
-        self.EVT: Set[int] = set()  # 事件 event EVT
-        self.AVT: Set[int] = set()  # 触发过的事件 Achieve Event
+        self.TLT: set[int] = set()  # 天赋 talent TLT
+        self.EVT: set[int] = set()  # 事件 event EVT
+        self.AVT: set[int] = set()  # 触发过的事件 Achieve Event
         self.total: int = 20
 
-    def apply(self, effect: Dict[str, int]):
+    def apply(self, effect: dict[str, int]):
         for key in effect:
             if key == "RDM":
                 k = ["CHR", "INT", "STR", "MNY", "SPR"][id(key) % 5]

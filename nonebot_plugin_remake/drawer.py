@@ -1,6 +1,6 @@
 from io import BytesIO
 from pathlib import Path
-from typing import List, NamedTuple, Optional
+from typing import NamedTuple, Optional
 
 from PIL import Image, ImageDraw, ImageFont
 from PIL.Image import Image as IMG
@@ -25,7 +25,7 @@ def get_icon(item: str) -> IMG:
     return Image.open(image_dir / f"icon_{item}.png")
 
 
-def break_text(text: str, font: FreeTypeFont, length: int) -> List[str]:
+def break_text(text: str, font: FreeTypeFont, length: int) -> list[str]:
     lines = []
     line = ""
     for word in text:
@@ -39,7 +39,7 @@ def break_text(text: str, font: FreeTypeFont, length: int) -> List[str]:
 
 
 def text_to_image(
-    texts: List[str],
+    texts: list[str],
     fontsize: int = 10,
     fill: str = "black",
     spacing: int = 4,
@@ -117,11 +117,11 @@ def draw_age(age: int) -> IMG:
     return text_to_image([f"{age}岁："], fontsize=45, fill="#C3DE5A")
 
 
-def draw_logs(logs: List[str]) -> IMG:
+def draw_logs(logs: list[str]) -> IMG:
     return text_to_image(logs, fontsize=45, fill="#F0F2F3", spacing=30, max_width=1200)
 
 
-def draw_results(results: List[PerAgeResult]) -> IMG:
+def draw_results(results: list[PerAgeResult]) -> IMG:
     margin_prop = 20
     margin_logs = 50
 
@@ -140,7 +140,7 @@ def draw_results(results: List[PerAgeResult]) -> IMG:
                 self.prop.height + margin_prop + max(self.age.height, self.logs.height)
             )
 
-    images: List[ImageResult] = []
+    images: list[ImageResult] = []
     for result in results:
         image_prop = draw_properties(result.property)
         image_prop = image_prop.resize(
@@ -150,7 +150,7 @@ def draw_results(results: List[PerAgeResult]) -> IMG:
         image_logs = draw_logs(result.event_log + result.talent_log)
         images.append(ImageResult(image_prop, image_age, image_logs))
 
-    image_groups: List[List[ImageResult]] = []
+    image_groups: list[list[ImageResult]] = []
     max_height = 10000
     sum_height = sum(image.height for image in images) + margin_logs * (len(images) - 1)
     num_groups = (sum_height - 1) // max_height + 1
@@ -159,7 +159,7 @@ def draw_results(results: List[PerAgeResult]) -> IMG:
         results_height += max(image.height for image in images)
 
     img_h = 0
-    temp_images: List[ImageResult] = []
+    temp_images: list[ImageResult] = []
     for image in images:
         if img_h + image.height > results_height:
             image_groups.append(temp_images)
@@ -359,7 +359,7 @@ def draw_talent(talent: Talent) -> IMG:
     return bg
 
 
-def draw_talents(talents: List[Talent]) -> IMG:
+def draw_talents(talents: list[Talent]) -> IMG:
     talent_images = [draw_talent(t) for t in talents]
     talent_w = talent_images[0].width
     talent_h = talent_images[0].height
@@ -373,12 +373,12 @@ def draw_talents(talents: List[Talent]) -> IMG:
 
 
 def draw_life(
-    talents: List[Talent],
+    talents: list[Talent],
     init_prop: PerAgeProperty,
-    results: List[PerAgeResult],
+    results: list[PerAgeResult],
     summary: Summary,
 ) -> IMG:
-    images: List[IMG] = []
+    images: list[IMG] = []
     images.append(draw_title("已选天赋"))
     images.append(draw_talents(talents))
     images.append(draw_title("初始属性"))

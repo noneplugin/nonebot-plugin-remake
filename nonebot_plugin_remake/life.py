@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterator, List
+from typing import Iterator
 
 from .age import AgeManager
 from .event import EventManager
@@ -29,8 +29,8 @@ class PerAgeProperty:
 @dataclass
 class PerAgeResult:
     property: PerAgeProperty
-    event_log: List[str]
-    talent_log: List[str]
+    event_log: list[str]
+    talent_log: list[str]
 
     def __str__(self) -> str:
         return (
@@ -76,15 +76,15 @@ class Life:
                 list(talent_log),
             )
 
-    def rand_talents(self, num: int) -> List[Talent]:
+    def rand_talents(self, num: int) -> list[Talent]:
         return list(self.talent.rand_talents(num))
 
-    def set_talents(self, talents: List[Talent]):
+    def set_talents(self, talents: list[Talent]):
         for t in talents:
             self.talent.add_talent(t)
         self.talent.update_talent_prop()
 
-    def apply_property(self, effect: Dict[str, int]):
+    def apply_property(self, effect: dict[str, int]):
         self.property.apply(effect)
 
     def total_property(self) -> int:

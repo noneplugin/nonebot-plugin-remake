@@ -1,7 +1,7 @@
 import json
 import random
 from pathlib import Path
-from typing import Dict, Iterator, List
+from typing import Iterator
 
 from .property import Property
 from .utils import parse_condition
@@ -13,10 +13,10 @@ class Talent:
         self.name: str = data["name"]
         self.description: str = data["description"]
         self.grade: int = int(data["grade"])
-        self.exclusive: List[int] = (
+        self.exclusive: list[int] = (
             [int(x) for x in data["exclusive"]] if "exclusive" in data else []
         )
-        self.effect: Dict[str, int] = data["effect"] if "effect" in data else {}
+        self.effect: dict[str, int] = data["effect"] if "effect" in data else {}
         self.status = int(data["status"]) if "status" in data else 0
         self.condition = (
             parse_condition(data["condition"])
@@ -33,7 +33,7 @@ class Talent:
     def check_condition(self, prop: Property) -> bool:
         return self.condition(prop)
 
-    def run(self, prop: Property) -> List[str]:
+    def run(self, prop: Property) -> list[str]:
         if self.check_condition(prop):
             prop.apply(self.effect)
             prop.TLT.add(self.id)
@@ -44,14 +44,14 @@ class Talent:
 class TalentManager:
     def __init__(self, prop: Property):
         self.prop = prop
-        self.talents: List[Talent] = []
-        self.talent_dict: Dict[int, List[Talent]] = {}
+        self.talents: list[Talent] = []
+        self.talent_dict: dict[int, list[Talent]] = {}
         self.grade_count = 4
         self.grade_prob = [0.889, 0.1, 0.01, 0.001]
 
     def load(self, path: Path):
         data: dict = json.load(path.open("r", encoding="utf8"))
-        talent_list: List[Talent] = [Talent(data) for data in data.values()]
+        talent_list: list[Talent] = [Talent(data) for data in data.values()]
         self.talent_dict = {
             i: [t for t in talent_list if t.grade == i] for i in range(self.grade_count)
         }
