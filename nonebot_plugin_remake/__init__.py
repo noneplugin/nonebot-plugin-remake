@@ -5,17 +5,19 @@ import traceback
 from io import BytesIO
 from typing import Optional
 
-from nonebot import on_command, require
+from nonebot import require
+from nonebot.adapters import Event
 from nonebot.log import logger
-from nonebot.params import ArgPlainText
+from nonebot.matcher import Matcher
 from nonebot.plugin import PluginMetadata, inherit_supported_adapters
 from nonebot.rule import to_me
-from nonebot.typing import T_State
 from nonebot.utils import run_sync
 
 require("nonebot_plugin_alconna")
+require("nonebot_plugin_waiter")
 
-from nonebot_plugin_alconna import UniMessage
+from nonebot_plugin_alconna import UniMessage, on_alconna
+from nonebot_plugin_waiter import waiter
 
 from .drawer import draw_life, save_jpg
 from .life import Life, PerAgeProperty, PerAgeResult
@@ -35,122 +37,138 @@ __plugin_meta__ = PluginMetadata(
 )
 
 
-remake = on_command(
+matcher_remake = on_alconna(
     "remake",
     aliases={"liferestart", "人生重开", "人生重来"},
     block=True,
     rule=to_me(),
+    use_cmd_start=True,
     priority=12,
 )
 
 
-@remake.handle()
-async def _(state: T_State):
-    life_ = Life()
-    life_.load()
-    talents = life_.rand_talents(10)
-    state["life"] = life_
-    state["talents"] = talents
+@matcher_remake.handle()
+async def _(matcher: Matcher):
+    life = Life()
+    life.load()
+    talents = life.rand_talents(10)
+
     msg = "请发送编号选择3个天赋，如“0 1 2”，或发送“随机”随机选择"
     des = "\n".join([f"{i}.{t}" for i, t in enumerate(talents)])
-    await remake.send(f"{msg}\n\n{des}")
+    await matcher.send(f"{msg}\n\n{des}")
 
+    @waiter(waits=["message"], keep_session=True)
+    async def get_response(event: Event):
+        logger.debug(event.get_message())
+        return event.get_plaintext()
 
-@remake.got("nums")
-async def _(
-    state: T_State,
-    reply: str = ArgPlainText("nums"),
-):
     def conflict_talents(talents: list[Talent]) -> Optional[tuple[Talent, Talent]]:
         for t1, t2 in itertools.combinations(talents, 2):
             if t1.exclusive_with(t2):
                 return t1, t2
         return None
 
-    life_: Life = state["life"]
-    talents: list[Talent] = state["talents"]
+    async def select_talents():
+        for _ in range(3):
+            resp = await get_response.wait(timeout=30)
+            if resp is None:
+                await matcher.finish("超市")
 
-    match = re.fullmatch(r"\s*(\d)\s*(\d)\s*(\d)\s*", reply)
-    if match:
-        nums = list(match.groups())
-        nums = [int(n) for n in nums]
-        nums.sort()
-        if nums[-1] >= 10:
-            await remake.reject("请发送正确的编号")
+            elif matched := re.fullmatch(r"\s*(\d)\s*(\d)\s*(\d)\s*", resp):
+                nums = list(matched.groups())
+                nums = [int(n) for n in nums]
+                nums.sort()
+                if nums[-1] >= 10:
+                    await matcher.send("请发送正确的编号")
+                talents_selected = [talents[n] for n in nums]
+                if conflict := conflict_talents(talents_selected):
+                    await matcher.send(
+                        f"你选择的天赋“{conflict[0].name}”和“{conflict[1].name}”不能同时拥有，请重新选择"
+                    )
+                return talents_selected
 
-        talents_selected = [talents[n] for n in nums]
-        ts = conflict_talents(talents_selected)
-        if ts:
-            await remake.reject(
-                f"你选择的天赋“{ts[0].name}”和“{ts[1].name}”不能同时拥有，请重新选择"
-            )
-    elif reply == "随机":
-        while True:
-            nums = random.sample(range(10), 3)
-            nums.sort()
-            talents_selected = [talents[n] for n in nums]
-            if not conflict_talents(talents_selected):
-                break
-    elif re.fullmatch(r"[\d\s]+", reply):
-        await remake.reject("请发送正确的编号，如“0 1 2”")
-    else:
-        await remake.finish("人生重开已取消")
+            elif re.fullmatch(r"[\d\s]+", resp):
+                await matcher.send("请发送正确的编号，如“0 1 2”")
+                continue
 
-    life_.set_talents(talents_selected)
-    state["talents_selected"] = talents_selected
+            elif resp == "随机":
+                while True:
+                    nums = random.sample(range(10), 3)
+                    nums.sort()
+                    talents_selected = [talents[n] for n in nums]
+                    if not conflict_talents(talents_selected):
+                        break
+                return talents_selected
+
+            else:
+                await matcher.finish("人生重开已取消")
+
+    if (talents_selected := await select_talents()) is None:
+        await matcher.finish("人生重开已取消")
+
+    life.set_talents(talents_selected)
+    total_prop = life.total_property()
 
     msg = (
         "请发送4个数字分配“颜值、智力、体质、家境”4个属性，"
         "如“5 5 5 5”，或发送“随机”随机选择；"
-        f"可用属性点为{life_.total_property()}，每个属性不能超过10"
+        f"可用属性点为{total_prop}，每个属性不能超过10"
     )
-    await remake.send(msg)
+    await matcher.send(msg)
 
+    async def select_nums():
+        for _ in range(3):
+            resp = await get_response.wait(timeout=30)
+            if resp is None:
+                await matcher.finish()
 
-@remake.got("prop")
-async def _(
-    state: T_State,
-    reply: str = ArgPlainText("prop"),
-):
-    life_: Life = state["life"]
-    talents: list[Talent] = state["talents_selected"]
-    total_prop = life_.total_property()
+            elif matched := re.fullmatch(
+                r"\s*(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s*", resp
+            ):
+                nums = list(matched.groups())
+                nums = [int(n) for n in nums]
+                if sum(nums) != total_prop:
+                    await matcher.send(f"属性之和需为{total_prop}，请重新发送")
+                    continue
+                elif max(nums) > 10:
+                    await matcher.send("每个属性不能超过10，请重新发送")
+                    continue
+                return nums
 
-    match = re.fullmatch(r"\s*(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s*", reply)
-    if match:
-        nums = list(match.groups())
-        nums = [int(n) for n in nums]
-        if sum(nums) != total_prop:
-            await remake.reject(f"属性之和需为{total_prop}，请重新发送")
-        elif max(nums) > 10:
-            await remake.reject("每个属性不能超过10，请重新发送")
-    elif reply == "随机":
-        half_prop1 = int(total_prop / 2)
-        half_prop2 = total_prop - half_prop1
-        num1 = random.randint(0, half_prop1)
-        num2 = random.randint(0, half_prop2)
-        nums = [num1, num2, half_prop1 - num1, half_prop2 - num2]
-        random.shuffle(nums)
-    elif re.fullmatch(r"[\d\s]+", reply):
-        await remake.reject("请发送正确的数字，如“5 5 5 5”")
-    else:
-        await remake.finish("人生重开已取消")
+            elif resp == "随机":
+                half_prop1 = int(total_prop / 2)
+                half_prop2 = total_prop - half_prop1
+                num1 = random.randint(0, half_prop1)
+                num2 = random.randint(0, half_prop2)
+                nums = [num1, num2, half_prop1 - num1, half_prop2 - num2]
+                random.shuffle(nums)
+                return nums
+
+            elif re.fullmatch(r"[\d\s]+", resp):
+                await matcher.send("请发送正确的数字，如“5 5 5 5”")
+                continue
+
+            else:
+                await matcher.finish("人生重开已取消")
+
+    if (nums := await select_nums()) is None:
+        await matcher.finish("人生重开已取消")
 
     prop = {"CHR": nums[0], "INT": nums[1], "STR": nums[2], "MNY": nums[3]}
-    life_.apply_property(prop)
+    life.apply_property(prop)
 
-    await remake.send("你的人生正在重开...")
+    await matcher.send("你的人生正在重开...")
 
-    init_prop = life_.get_property()
-    results = list(life_.run())
-    summary = life_.gen_summary()
+    init_prop = life.get_property()
+    results = list(life.run())
+    summary = life.gen_summary()
 
     try:
         img = await get_life_img(talents, init_prop, results, summary)
         await UniMessage.image(raw=img).send()
     except Exception:
         logger.warning(traceback.format_exc())
-        await remake.finish("你的人生重开失败（")
+        await matcher.finish("你的人生重开失败（")
 
 
 @run_sync

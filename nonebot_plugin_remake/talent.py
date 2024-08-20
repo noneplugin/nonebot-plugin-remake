@@ -1,7 +1,7 @@
 import json
 import random
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 from .property import Property
 from .utils import parse_condition
