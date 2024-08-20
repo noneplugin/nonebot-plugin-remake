@@ -7,6 +7,7 @@ from typing import Optional
 
 from nonebot import require
 from nonebot.adapters import Event
+from nonebot.exception import AdapterException
 from nonebot.log import logger
 from nonebot.matcher import Matcher
 from nonebot.plugin import PluginMetadata, inherit_supported_adapters
@@ -165,7 +166,11 @@ async def _(matcher: Matcher):
 
     try:
         img = await get_life_img(talents, init_prop, results, summary)
-        await UniMessage.image(raw=img).send()
+        try:
+            await UniMessage.image(raw=img).finish()
+        except AdapterException:
+            logger.warning("发送图片失败，尝试发送文件")
+            await UniMessage.file(raw=img).finish()
     except Exception:
         logger.warning(traceback.format_exc())
         await matcher.finish("你的人生重开失败（")
