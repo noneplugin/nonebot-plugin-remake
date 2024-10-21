@@ -37,6 +37,67 @@ __plugin_meta__ = PluginMetadata(
     },
 )
 
+matcher_random_life = on_alconna(
+    "随机人生",
+    aliases={"random_life"},
+    block=True,
+    rule=to_me(),
+    use_cmd_start=True,
+    priority=12,
+)
+
+@matcher_random_life.handle()
+async def _(matcher: Matcher):
+    life = Life()
+    life.load()
+
+    # 使用随机选择天赋的逻辑
+    talents = life.rand_talents(10)
+    talents_selected = []
+    while True:
+        nums = random.sample(range(10), 3)
+        nums.sort()
+        talents_selected = [talents[n] for n in nums]
+        if not conflict_talents(talents_selected):
+            break
+
+    life.set_talents(talents_selected)
+    total_prop = life.total_property()
+
+    # 使用随机分配属性的逻辑
+    half_prop1 = int(total_prop / 2)
+    half_prop2 = total_prop - half_prop1
+    num1 = random.randint(0, half_prop1)
+    num2 = random.randint(0, half_prop2)
+    nums = [num1, num2, half_prop1 - num1, half_prop2 - num2]
+    random.shuffle(nums)
+
+    prop = {"CHR": nums[0], "INT": nums[1], "STR": nums[2], "MNY": nums[3]}
+    life.apply_property(prop)
+
+    await matcher.send("你的人生正在重开...")
+
+    init_prop = life.get_property()
+    results = list(life.run())
+    summary = life.gen_summary()
+
+    try:
+        img = await get_life_img(talents, init_prop, results, summary)
+        try:
+            await UniMessage.image(raw=img).finish()
+        except AdapterException:
+            logger.warning("发送图片失败，尝试发送文件")
+            await UniMessage.file(raw=img).finish()
+    except Exception:
+        logger.warning(traceback.format_exc())
+        await matcher.finish("你的人生重开失败（")
+
+# 辅助函数：检测天赋冲突
+def conflict_talents(talents: list[Talent]) -> Optional[tuple[Talent, Talent]]:
+    for t1, t2 in itertools.combinations(talents, 2):
+        if t1.exclusive_with(t2):
+            return t1, t2
+    return None
 
 matcher_remake = on_alconna(
     "remake",
