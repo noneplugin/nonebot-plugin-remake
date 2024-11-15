@@ -95,7 +95,7 @@ async def _(
         for _ in range(3):
             resp = await get_response.wait(timeout=30)
             if resp is None:
-                await matcher.finish("超市")
+                await matcher.finish("人生重开已取消")
 
             elif matched := re.fullmatch(r"\s*(\d)\s*(\d)\s*(\d)\s*", resp):
                 nums = list(matched.groups())
