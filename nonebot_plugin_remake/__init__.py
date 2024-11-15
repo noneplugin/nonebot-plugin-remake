@@ -167,10 +167,10 @@ async def _(matcher: Matcher):
     try:
         img = await get_life_img(talents, init_prop, results, summary)
         try:
-            await UniMessage.image(raw=img).finish()
+            await UniMessage.image(raw=img).send()
         except AdapterException:
             logger.warning("发送图片失败，尝试发送文件")
-            await UniMessage.file(raw=img).finish()
+            await UniMessage.file(raw=img).send()
     except Exception:
         logger.warning(traceback.format_exc())
         await matcher.finish("你的人生重开失败（")
