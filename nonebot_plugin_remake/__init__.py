@@ -17,7 +17,15 @@ from nonebot.utils import run_sync
 require("nonebot_plugin_alconna")
 require("nonebot_plugin_waiter")
 
-from nonebot_plugin_alconna import UniMessage, on_alconna
+from nonebot_plugin_alconna import (
+    Alconna,
+    AlconnaQuery,
+    Option,
+    Query,
+    UniMessage,
+    on_alconna,
+    store_true,
+)
 from nonebot_plugin_waiter import waiter
 
 from .drawer import draw_life, save_jpg
@@ -32,31 +40,36 @@ __plugin_meta__ = PluginMetadata(
     type="application",
     homepage="https://github.com/noneplugin/nonebot-plugin-remake",
     supported_adapters=inherit_supported_adapters("nonebot_plugin_alconna"),
-    extra={
-        "example": "@小Q remake",
-    },
 )
 
 
 matcher_remake = on_alconna(
-    "remake",
+    Alconna(
+        "remake",
+        Option(
+            "--random|随机",
+            default=False,
+            action=store_true,
+            help_text="随机选择天赋和属性",
+        ),
+    ),
     aliases={"liferestart", "人生重开", "人生重来"},
     block=True,
     rule=to_me(),
     use_cmd_start=True,
     priority=12,
 )
+matcher_remake.shortcut("随机人生", arguments=["--random"], prefix=True)
 
 
 @matcher_remake.handle()
-async def _(matcher: Matcher):
+async def _(
+    matcher: Matcher,
+    random_life: Query[bool] = AlconnaQuery("random.value", False),
+):
     life = Life()
     life.load()
     talents = life.rand_talents(10)
-
-    msg = "请发送编号选择3个天赋，如“0 1 2”，或发送“随机”随机选择"
-    des = "\n".join([f"{i}.{t}" for i, t in enumerate(talents)])
-    await matcher.send(f"{msg}\n\n{des}")
 
     @waiter(waits=["message"], keep_session=True)
     async def get_response(event: Event):
@@ -68,6 +81,15 @@ async def _(matcher: Matcher):
             if t1.exclusive_with(t2):
                 return t1, t2
         return None
+
+    def random_talents():
+        while True:
+            nums = random.sample(range(10), 3)
+            nums.sort()
+            talents_selected = [talents[n] for n in nums]
+            if not conflict_talents(talents_selected):
+                break
+        return talents_selected
 
     async def select_talents():
         for _ in range(3):
@@ -93,29 +115,33 @@ async def _(matcher: Matcher):
                 continue
 
             elif resp == "随机":
-                while True:
-                    nums = random.sample(range(10), 3)
-                    nums.sort()
-                    talents_selected = [talents[n] for n in nums]
-                    if not conflict_talents(talents_selected):
-                        break
-                return talents_selected
+                return random_talents()
 
             else:
                 await matcher.finish("人生重开已取消")
 
-    if (talents_selected := await select_talents()) is None:
-        await matcher.finish("人生重开已取消")
+    if random_life.result:
+        talents_selected = random_talents()
+    else:
+        msg = "请发送编号选择3个天赋，如“0 1 2”，或发送“随机”随机选择"
+        des = "\n".join([f"{i}.{t}" for i, t in enumerate(talents)])
+        await matcher.send(f"{msg}\n\n{des}")
+        talents_selected = await select_talents()
+
+        if talents_selected is None:
+            await matcher.finish("人生重开已取消")
 
     life.set_talents(talents_selected)
     total_prop = life.total_property()
 
-    msg = (
-        "请发送4个数字分配“颜值、智力、体质、家境”4个属性，"
-        "如“5 5 5 5”，或发送“随机”随机选择；"
-        f"可用属性点为{total_prop}，每个属性不能超过10"
-    )
-    await matcher.send(msg)
+    def random_nums():
+        half_prop1 = int(total_prop / 2)
+        half_prop2 = total_prop - half_prop1
+        num1 = random.randint(0, half_prop1)
+        num2 = random.randint(0, half_prop2)
+        nums = [num1, num2, half_prop1 - num1, half_prop2 - num2]
+        random.shuffle(nums)
+        return nums
 
     async def select_nums():
         for _ in range(3):
@@ -137,13 +163,7 @@ async def _(matcher: Matcher):
                 return nums
 
             elif resp == "随机":
-                half_prop1 = int(total_prop / 2)
-                half_prop2 = total_prop - half_prop1
-                num1 = random.randint(0, half_prop1)
-                num2 = random.randint(0, half_prop2)
-                nums = [num1, num2, half_prop1 - num1, half_prop2 - num2]
-                random.shuffle(nums)
-                return nums
+                return random_nums()
 
             elif re.fullmatch(r"[\d\s]+", resp):
                 await matcher.send("请发送正确的数字，如“5 5 5 5”")
@@ -152,8 +172,19 @@ async def _(matcher: Matcher):
             else:
                 await matcher.finish("人生重开已取消")
 
-    if (nums := await select_nums()) is None:
-        await matcher.finish("人生重开已取消")
+    if random_life.result:
+        nums = random_nums()
+    else:
+        msg = (
+            "请发送4个数字分配“颜值、智力、体质、家境”4个属性，"
+            "如“5 5 5 5”，或发送“随机”随机选择；"
+            f"可用属性点为{total_prop}，每个属性不能超过10"
+        )
+        await matcher.send(msg)
+        nums = await select_nums()
+
+        if nums is None:
+            await matcher.finish("人生重开已取消")
 
     prop = {"CHR": nums[0], "INT": nums[1], "STR": nums[2], "MNY": nums[3]}
     life.apply_property(prop)
